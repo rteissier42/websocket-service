@@ -5,15 +5,15 @@ import { AppComponent } from './app.component'
 import { CoreModule } from './core/core.module'
 
 @NgModule({
-    declarations: [AppComponent],
-    imports: [
-        // Local
-        CoreModule,
+  declarations: [AppComponent],
+  imports: [
+    // Local
+    CoreModule,
 
-        // Vendor
-        AppRoutingModule,
-    ],
-    providers: [],
-    bootstrap: [AppComponent],
+    // Vendor
+    AppRoutingModule,
+  ],
+  providers: [],
+  bootstrap: [AppComponent],
 })
 export class AppModule {}
