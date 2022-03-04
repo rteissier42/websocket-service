@@ -1,0 +1,6 @@
+{
+  "env": "local",
+  "urls": {
+    "webSocketEndpointUrl": ""
+  }
+}
