@@ -8,6 +8,7 @@ import { cold } from 'jasmine-marbles'
 import { configurationFixture } from 'src/tests/fixtures/configuration.fixture'
 
 import { AppConfigService } from './app-config.service'
+import { LoggerService } from './logger.service'
 
 const TEST_URI = 'assets/config/config.json'
 
@@ -15,9 +16,14 @@ describe('AppConfigService', () => {
   let configService: AppConfigService
   let httpMock: HttpTestingController
 
+  let loggerSpy: jasmine.SpyObj<LoggerService>
+
   beforeEach(() => {
+    loggerSpy = jasmine.createSpyObj<LoggerService>('LoggerService', ['error'])
+
     TestBed.configureTestingModule({
       imports: [HttpClientTestingModule],
+      providers: [{ provide: LoggerService, useValue: loggerSpy }],
     })
     configService = TestBed.inject(AppConfigService)
 
@@ -68,5 +74,23 @@ describe('AppConfigService', () => {
 
     // Assert
     expect(socketUrl).toBe(configurationFixture.urls.webSocketEndpointUrl)
+  })
+
+  it('should request to log an error and provide a fallback when an url cannot be retrieved from the configuration', () => {
+    // Arrange
+    configService.load().subscribe({ next: () => {}, error: fail })
+
+    // Act
+    const httpRequest = httpMock.expectOne(TEST_URI)
+    httpRequest.flush(configurationFixture)
+    const requestedUrl = 'unknownUrl' as ConfigUrl
+    const unknownUrl = configService.getUrl(requestedUrl)
+
+    // Assert
+    expect(unknownUrl).toEqual('')
+    expect(loggerSpy.error).toHaveBeenCalledOnceWith(
+      'There is no such url in the current configuration: ',
+      requestedUrl
+    )
   })
 })

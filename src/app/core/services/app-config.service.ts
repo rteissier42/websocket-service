@@ -1,3 +1,4 @@
+import { LoggerService } from './logger.service'
 import { Injectable } from '@angular/core'
 import { HttpBackend, HttpClient } from '@angular/common/http'
 import { Observable, shareReplay, tap } from 'rxjs'
@@ -21,10 +22,16 @@ export interface IAppConf {
   }
 }
 
+export interface IAppConfigService {
+  urlMap: ReadonlyMap<ConfigUrl, string>
+  load(): Observable<IAppConf>
+  getUrl(url: ConfigUrl): string
+}
+
 @Injectable({
   providedIn: 'root',
 })
-export class AppConfigService {
+export class AppConfigService implements IAppConfigService {
   private readonly configUrl = 'assets/config/config.json'
   private readonly _urlMap = new Map<ConfigUrl, string>([])
   private configuration$?: Observable<IAppConf>
@@ -32,7 +39,10 @@ export class AppConfigService {
   // Flag(appConf): Alternatively if we absolutely have to expose appConf as a constant.
   // public appConf?:IAppConf
 
-  constructor(private http: HttpBackend) {}
+  constructor(
+    private http: HttpBackend,
+    private loggerService: LoggerService
+  ) {}
 
   public get urlMap(): ReadonlyMap<ConfigUrl, string> {
     return this._urlMap as ReadonlyMap<ConfigUrl, string>
@@ -64,12 +74,22 @@ export class AppConfigService {
    * Implementation should then differ a bit.
    */
   public getUrl(configUrl: ConfigUrl): string {
-    const url = this.urlMap.get(configUrl)
-    if (!url) {
-      // TODO: Use logger service and a try/catch block
-      throw new Error('There is no such url in the current configuration')
+    try {
+      const url = this.urlMap.get(configUrl)
+      if (!url) {
+        throw new Error('There is no such url in the current configuration: ')
+      }
+      return url
+    } catch (e) {
+      if (e instanceof Error) {
+        this.loggerService.error(e.message, configUrl)
+      }
+      /**
+       * Avoid runtime errors from a String.prototype method
+       * called on a potentially undefined url property.
+       */
+      return ''
     }
-    return url
   }
 
   private createUrlMap(urls: Record<ConfigUrl, string>): void {
