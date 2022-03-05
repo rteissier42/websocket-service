@@ -1,6 +1,6 @@
 {
   "root": true,
-  "ignorePatterns": ["projects/**/*"],
+  "ignorePatterns": [],
   "overrides": [
     {
       "files": ["*.ts"],
@@ -8,9 +8,12 @@
         "project": ["tsconfig.json"],
         "createDefaultProgram": true
       },
+      "plugins": ["eslint-plugin-import"],
       "extends": [
         "plugin:@angular-eslint/recommended",
-        "plugin:@angular-eslint/template/process-inline-templates",
+        "plugin:@typescript-eslint/recommended",
+        "plugin:@typescript-eslint/recommended-requiring-type-checking",
+        ".eslint-default.json",
         "plugin:prettier/recommended"
       ],
       "rules": {
@@ -29,7 +32,9 @@
             "prefix": "app",
             "style": "kebab-case"
           }
-        ]
+        ],
+        "@typescript-eslint/no-unused-vars": ["error", { "ignoreRestSiblings": true }],
+        "prettier/prettier": ["error", { "semi": true }]
       }
     },
     {
