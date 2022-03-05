@@ -1,9 +1,10 @@
-<h5>{{ label }}</h5>
+<h4>{{ label }}</h4>
 <p>
-  Lowest: {{ infos.lowest.today | number: '2' }} |
-  {{ infos.lowest.last24Hours | number: '2' }}
+  Lowest: {{ infos.prices.lowest.today | currency: 'EUR' }} /
+  {{ infos.prices.lowest.last24Hours | currency: 'EUR' }}
 </p>
 <p>
-  Highest: {{ infos.highest.today | number: '2' }} |
-  {{ infos.highest.last24Hours | number: '2' }}
+  Highest: {{ infos.prices.highest.today | currency: 'EUR' }} /
+  {{ infos.prices.highest.last24Hours | currency: 'EUR' }}
 </p>
+<p>Transaction volume: {{ infos.trading.volume }}</p>

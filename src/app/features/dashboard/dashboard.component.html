@@ -1,13 +1,9 @@
 <section *ngIf="currencyInfos$ | async as currencyInfos">
-  <h2 class="dashboard__title">XBT/EUR:</h2>
+  <h2 class="dashboard__title">Prices and volume:</h2>
   <div class="dashboard__wgt-ctr">
     <app-info-widget
-      label="XBT/EUR: Last 24 hours / Current"
-      [infos]="currencyInfos.ticker"
-    ></app-info-widget>
-    <app-info-widget
-      label="XBT/EUR: Last 24 hours / Current"
-      [infos]="currencyInfos.trading"
+      label="XBT/EUR: "
+      [infos]="{ prices: currencyInfos.ticker, trading: currencyInfos.trading }"
     ></app-info-widget>
   </div>
 </section>

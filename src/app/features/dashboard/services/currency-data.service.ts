@@ -15,8 +15,11 @@ export interface ITickerValue {
   highest: ICurrencyInfos
 }
 
-// TODO: Should not be provided in root but in dashboard module scope
-@Injectable({ providedIn: 'root' })
+export interface ITradingInfos {
+  volume: string
+}
+
+@Injectable()
 export class CurrencyDataService {
   public _tickerMessages$: Subject<ITickerValue>
   public _tradingMessages$: Subject<any>
@@ -26,7 +29,7 @@ export class CurrencyDataService {
     this._tickerMessages$ = new Subject()
     this._tradingMessages$ = new Subject()
     this.initTickerSubscription()
-    // this.initTradingSubscription()
+    this.initTradingSubscription()
   }
 
   public get tickerMessages$(): Observable<any> {
@@ -47,8 +50,8 @@ export class CurrencyDataService {
 
   private initTradingSubscription(): void {
     this.socket.subscribe(CurrencyChannel.TRADE, (message) => {
-      console.log('IAM RECEIVING THE TRADING MESSAGE', JSON.parse(message.body))
-      this._tradingMessages$.next(message.body)
+      const tradingInfos = this.deserializeTradingMsg(message.body)
+      this._tradingMessages$.next(tradingInfos)
     })
   }
 
@@ -56,15 +59,24 @@ export class CurrencyDataService {
     this.socket.subscribe(
       CurrencyChannel.TICKER,
       (message) => {
-        const { l, h } = JSON.parse(message.body)[1]
-        const infos: ITickerValue = {
-          lowest: { today: l[0], last24Hours: l[1] },
-          highest: { today: h[0], last24Hours: h[1] },
-        }
-
-        this._tickerMessages$.next(infos)
+        const tickerInfos = this.deserializeCurrencyMsg(message.body)
+        this._tickerMessages$.next(tickerInfos)
       },
       false
     )
+  }
+
+  private deserializeTradingMsg(body: string): ITradingInfos {
+    const data = JSON.parse(body)[1]
+    const volume = data[0][1]
+    return { volume }
+  }
+
+  private deserializeCurrencyMsg(body: string): ITickerValue {
+    const { l, h } = JSON.parse(body)[1]
+    return {
+      lowest: { today: l[0], last24Hours: l[1] },
+      highest: { today: h[0], last24Hours: h[1] },
+    }
   }
 }

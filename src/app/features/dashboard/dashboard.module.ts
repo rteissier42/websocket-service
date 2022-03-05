@@ -1,3 +1,4 @@
+import { CurrencyDataService } from './services/currency-data.service'
 import { SharedModule } from './../../shared/shared.module'
 import { DashboardRoutingModule } from './dashboard-routing.module'
 import { NgModule } from '@angular/core'
@@ -14,5 +15,6 @@ import { DashboardComponent } from './dashboard.component'
     DashboardRoutingModule,
     SharedModule,
   ],
+  providers: [CurrencyDataService],
 })
 export class DashboardModule {}
