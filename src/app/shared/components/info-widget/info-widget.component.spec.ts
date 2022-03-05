@@ -37,7 +37,18 @@ describe('InfoWidgetComponent', () => {
 })
 class TestHostComponent {
   infos: IWidgetInfos = {
-    last24Hours: 0,
-    total: 0,
+    prices: {
+      lowest: {
+        today: '0',
+        last24Hours: '0',
+      },
+      highest: {
+        today: '0',
+        last24Hours: '0',
+      },
+    },
+    trading: {
+      volume: '0',
+    },
   }
 }

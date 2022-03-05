@@ -12,7 +12,10 @@ describe('CurrencyDataService', () => {
       'subscribe',
     ])
     TestBed.configureTestingModule({
-      providers: [{ provide: WebSocketService, useValue: socketSpy }],
+      providers: [
+        CurrencyDataService,
+        { provide: WebSocketService, useValue: socketSpy },
+      ],
     })
     currencyDataService = TestBed.inject(CurrencyDataService)
   })
