@@ -28,14 +28,14 @@ module.exports = function (config) {
       dir: require('path').join(__dirname, './coverage/websocket-service'),
       subdir: '.',
       reporters: [{ type: 'html' }, { type: 'text-summary' }],
-      check: {
-        global: {
-          statements: 95,
-          lines: 95,
-          branches: 80,
-          functions: 95,
-        },
-      },
+      // check: {
+      //   global: {
+      //     statements: 95,
+      //     lines: 95,
+      //     branches: 80,
+      //     functions: 95,
+      //   },
+      // },
     },
     customLaunchers: {
       headlessChrome: {
