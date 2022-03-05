@@ -109,6 +109,7 @@ export class WebSocketService implements IWebSocketService, OnDestroy {
             this._socketConnectionEvents$.next(SocketEvent.CLOSED)
             // Error handling
             if (!closeEvent.wasClean) {
+              console.log('IAM CLOSED', this.wsSubject$?.closed)
               this.wsSubject$ = null
               setTimeout(() => this.initWebsocketClient(), 10000)
             }
@@ -126,7 +127,7 @@ export class WebSocketService implements IWebSocketService, OnDestroy {
     let subscription = this.wsSubject$?.subscribe(subscriber.handler)
     this.wsSubject$?.next({
       event: 'subscribe',
-      pair: ['XBT/USD'],
+      pair: ['XBT/EUR'],
       subscription: { name: subscriber.url },
     })
     if (subscription && !subscriber.keepActive) {
