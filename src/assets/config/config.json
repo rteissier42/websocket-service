@@ -1,6 +1,6 @@
 {
   "env": "local",
   "urls": {
-    "webSocketEndpointUrl": ""
+    "webSocketEndpointUrl": "wss://ws.kraken.com"
   }
 }
