@@ -1,10 +1,12 @@
-import { ITradingInfos } from './../../../features/dashboard/services/currency-data.service'
-import { ChangeDetectionStrategy, Component, Input } from '@angular/core'
-import { ITickerValue } from 'src/app/features/dashboard/services/currency-data.service'
+import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
+import {
+  ITickerValue,
+  ITradingInfos,
+} from 'src/app/features/dashboard/services/currency-data.service';
 
 export interface IWidgetInfos {
-  prices: ITickerValue
-  trading: ITradingInfos
+  prices: ITickerValue;
+  trading: ITradingInfos;
 }
 
 @Component({
@@ -14,6 +16,6 @@ export interface IWidgetInfos {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class InfoWidgetComponent {
-  @Input() public label!: string
-  @Input() public infos!: IWidgetInfos
+  @Input() public label!: string;
+  @Input() public infos!: IWidgetInfos;
 }

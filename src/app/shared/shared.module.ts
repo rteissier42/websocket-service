@@ -1,6 +1,6 @@
-import { InfoWidgetComponent } from './components/info-widget/info-widget.component'
-import { NgModule } from '@angular/core'
-import { CommonModule } from '@angular/common'
+import { InfoWidgetComponent } from './components/info-widget/info-widget.component';
+import { NgModule } from '@angular/core';
+import { CommonModule } from '@angular/common';
 
 /**
  * Might not be suitable as the application grow.
