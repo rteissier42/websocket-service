@@ -49,6 +49,8 @@ export class WebSocketService implements IWebSocketService, OnDestroy {
   ) {
     this._socketConnectionEvents$ = new Subject<SocketEvent>()
     this.initWebsocketClient()
+
+    console.log(this.subscriptions)
   }
 
   public get socketConnectionEvents$(): Observable<SocketEvent> {
@@ -93,7 +95,9 @@ export class WebSocketService implements IWebSocketService, OnDestroy {
          * in our subscribe method, we prevent Rxjs to JSON.Parse
          * our return payloads.
          */
-        // deserializer: ({ data }) => ({ data }),
+        deserializer: ({ data }) => ({
+          body: data,
+        }),
         openObserver: {
           next: () => {
             this.logger.info('Socket connected : run subscribers')
@@ -109,7 +113,6 @@ export class WebSocketService implements IWebSocketService, OnDestroy {
             this._socketConnectionEvents$.next(SocketEvent.CLOSED)
             // Error handling
             if (!closeEvent.wasClean) {
-              console.log('IAM CLOSED', this.wsSubject$?.closed)
               this.wsSubject$ = null
               setTimeout(() => this.initWebsocketClient(), 10000)
             }
@@ -124,12 +127,25 @@ export class WebSocketService implements IWebSocketService, OnDestroy {
 
   private runSubscriber(subscriber: WebSocketSuscriber<any>): void {
     this.logger.info('New SUBSCRIPTION : ', subscriber.url)
-    let subscription = this.wsSubject$?.subscribe(subscriber.handler)
-    this.wsSubject$?.next({
-      event: 'subscribe',
-      pair: ['XBT/EUR'],
-      subscription: { name: subscriber.url },
-    })
+    let subscription = this.wsSubject$
+      ?.multiplex(
+        () => ({
+          event: 'subscribe',
+          pair: ['XBT/EUR'],
+          subscription: { name: subscriber.url },
+        }),
+        () => ({
+          event: 'unsubscribe',
+          pair: ['XBT/EUR'],
+          subscription: { name: subscriber.url },
+        }),
+        (message) => {
+          const body = JSON.parse(message.body)
+          return Array.isArray(body) && body[2] === subscriber.url
+        }
+      )
+      .subscribe(subscriber.handler)
+
     if (subscription && !subscriber.keepActive) {
       this.subscriptions.push(subscription)
     }

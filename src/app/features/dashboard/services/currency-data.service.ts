@@ -6,11 +6,22 @@ export enum CurrencyChannel {
   TICKER = 'ticker',
   TRADE = 'trade',
 }
+export interface ICurrencyInfos {
+  last24Hours: string
+  today: string
+}
+export interface ITickerValue {
+  lowest: ICurrencyInfos
+  highest: ICurrencyInfos
+}
 
-// TODO: Should not be provided in root but in dashboard module scope
-@Injectable({ providedIn: 'root' })
+export interface ITradingInfos {
+  volume: string
+}
+
+@Injectable()
 export class CurrencyDataService {
-  public _tickerMessages$: Subject<any>
+  public _tickerMessages$: Subject<ITickerValue>
   public _tradingMessages$: Subject<any>
 
   constructor(private socket: WebSocketService) {
@@ -39,8 +50,8 @@ export class CurrencyDataService {
 
   private initTradingSubscription(): void {
     this.socket.subscribe(CurrencyChannel.TRADE, (message) => {
-      console.log('IAM RECEIVING THE TRADING MESSAGE', message)
-      this._tradingMessages$.next(message)
+      const tradingInfos = this.deserializeTradingMsg(message.body)
+      this._tradingMessages$.next(tradingInfos)
     })
   }
 
@@ -48,10 +59,24 @@ export class CurrencyDataService {
     this.socket.subscribe(
       CurrencyChannel.TICKER,
       (message) => {
-        console.log('I RECEIVED THE TICKER MESSAGE', message)
-        this._tickerMessages$.next(message)
+        const tickerInfos = this.deserializeCurrencyMsg(message.body)
+        this._tickerMessages$.next(tickerInfos)
       },
       false
     )
+  }
+
+  private deserializeTradingMsg(body: string): ITradingInfos {
+    const data = JSON.parse(body)[1]
+    const volume = data[0][1]
+    return { volume }
+  }
+
+  private deserializeCurrencyMsg(body: string): ITickerValue {
+    const { l, h } = JSON.parse(body)[1]
+    return {
+      lowest: { today: l[0], last24Hours: l[1] },
+      highest: { today: h[0], last24Hours: h[1] },
+    }
   }
 }

@@ -1,8 +1,10 @@
+import { ITradingInfos } from './../../../features/dashboard/services/currency-data.service'
 import { ChangeDetectionStrategy, Component, Input } from '@angular/core'
+import { ITickerValue } from 'src/app/features/dashboard/services/currency-data.service'
 
 export interface IWidgetInfos {
-  last24Hours: number
-  total: number
+  prices: ITickerValue
+  trading: ITradingInfos
 }
 
 @Component({
