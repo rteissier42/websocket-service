@@ -1,9 +1,5 @@
 import { ChangeDetectionStrategy, Component, Input } from '@angular/core'
-
-export interface IWidgetInfos {
-  last24Hours: number
-  total: number
-}
+import { ITickerValue } from 'src/app/features/dashboard/services/currency-data.service'
 
 @Component({
   selector: 'app-info-widget',
@@ -13,5 +9,5 @@ export interface IWidgetInfos {
 })
 export class InfoWidgetComponent {
   @Input() public label!: string
-  @Input() public infos!: IWidgetInfos
+  @Input() public infos!: ITickerValue
 }

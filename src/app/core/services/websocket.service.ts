@@ -93,7 +93,9 @@ export class WebSocketService implements IWebSocketService, OnDestroy {
          * in our subscribe method, we prevent Rxjs to JSON.Parse
          * our return payloads.
          */
-        // deserializer: ({ data }) => ({ data }),
+        deserializer: ({ data }) => ({
+          body: data,
+        }),
         openObserver: {
           next: () => {
             this.logger.info('Socket connected : run subscribers')
@@ -109,7 +111,6 @@ export class WebSocketService implements IWebSocketService, OnDestroy {
             this._socketConnectionEvents$.next(SocketEvent.CLOSED)
             // Error handling
             if (!closeEvent.wasClean) {
-              console.log('IAM CLOSED', this.wsSubject$?.closed)
               this.wsSubject$ = null
               setTimeout(() => this.initWebsocketClient(), 10000)
             }
