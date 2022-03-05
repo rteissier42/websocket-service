@@ -1,2 +1,9 @@
 <h5>{{ label }}</h5>
-<p>{{ infos.last24Hours }}/{{ infos.total }}</p>
+<p>
+  Lowest: {{ infos.lowest.today | number: '2' }} |
+  {{ infos.lowest.last24Hours | number: '2' }}
+</p>
+<p>
+  Highest: {{ infos.highest.today | number: '2' }} |
+  {{ infos.highest.last24Hours | number: '2' }}
+</p>
