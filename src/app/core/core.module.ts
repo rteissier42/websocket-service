@@ -1,10 +1,10 @@
-import { HttpClientModule } from '@angular/common/http'
-import { AppConfigService, IAppConf } from './services/app-config.service'
-import { RouterModule } from '@angular/router'
-import { APP_INITIALIZER, NgModule } from '@angular/core'
-import { BrowserModule } from '@angular/platform-browser'
-import { MainLayoutComponent } from './layouts/main/main-layout.component'
-import { Observable } from 'rxjs'
+import { HttpClientModule } from '@angular/common/http';
+import { AppConfigService, IAppConf } from './services/app-config.service';
+import { RouterModule } from '@angular/router';
+import { APP_INITIALIZER, NgModule } from '@angular/core';
+import { BrowserModule } from '@angular/platform-browser';
+import { MainLayoutComponent } from './layouts/main/main-layout.component';
+import { Observable } from 'rxjs';
 
 @NgModule({
   declarations: [MainLayoutComponent],
@@ -18,7 +18,7 @@ import { Observable } from 'rxjs'
   providers: [
     {
       provide: APP_INITIALIZER,
-      useFactory: fetchConfig,
+      useFactory: FetchConfig,
       deps: [AppConfigService],
       multi: true,
     },
@@ -26,8 +26,6 @@ import { Observable } from 'rxjs'
 })
 export class CoreModule {}
 
-function fetchConfig(
-  configService: AppConfigService
-): () => Observable<IAppConf> {
-  return () => configService.load()
+function FetchConfig(configService: AppConfigService): () => Observable<IAppConf> {
+  return () => configService.load();
 }
