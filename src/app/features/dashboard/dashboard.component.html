@@ -1,4 +1,4 @@
-<section *ngIf="currencyInfos$ | async as currencyInfos">
+<section *ngIf="currencyInfos$ | async as currencyInfos; else loader">
   <h2 class="dashboard__title">Prices and volume:</h2>
   <div class="dashboard__wgt-ctr">
     <app-info-widget
@@ -7,3 +7,6 @@
     ></app-info-widget>
   </div>
 </section>
+<ng-template #loader>
+  <div class="dashboard__loader"></div>
+</ng-template>
