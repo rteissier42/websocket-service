@@ -54,6 +54,14 @@ export class WebSocketService implements IWebSocketService, OnDestroy {
     if (!this.wsSubject$) {
       this.subscribers.push(new WebSocketSuscriber<T>(url, handler, keepActive || false));
     } else if (this.wsSubject$ && !this.wsSubject$.closed) {
+      /**
+       * WebSocketSubject is buffering the received values if he is
+       * not already connected at the time he is receiving them.
+       * The subscribe event sent at the multiplex subscription will
+       * then always reach the destination if the subject is defined
+       * at the time we are subscribing.
+       * That is why we are skipping here the "Connecting" ready state check.
+       */
       this.runSubscriber<T>({ url, handler, keepActive: keepActive || false });
     } else {
       return false;
