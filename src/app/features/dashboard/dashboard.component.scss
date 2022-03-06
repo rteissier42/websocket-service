@@ -1,12 +1,29 @@
 .dashboard {
   &__title {
     font-size: 2rem;
-    text-align: center;
   }
 
   &__wgt-ctr {
     display: flex;
     flex: 50%;
     flex-direction: column;
+  }
+
+  &__loader {
+    animation: spin 2s linear infinite;
+    border: 8px solid #f3f3f3;
+    border-top: 8px solid #1976d2;
+    border-radius: 50%;
+    height: 60px;
+    width: 60px;
+  }
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
   }
 }

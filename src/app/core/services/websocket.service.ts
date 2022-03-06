@@ -1,10 +1,9 @@
 /* eslint-disable max-classes-per-file */
-
 import { LoggerService } from './logger.service';
 import { AppConfigService, ConfigUrl } from './app-config.service';
 import { Injectable, OnDestroy } from '@angular/core';
 import { webSocket, WebSocketSubject, WebSocketSubjectConfig } from 'rxjs/webSocket';
-import { Observable, shareReplay, Subject, Subscription } from 'rxjs';
+import { Observable, shareReplay, Subject, Subscription, catchError, EMPTY } from 'rxjs';
 
 export interface IWebSocketService {
   subscribe<T>(
@@ -13,10 +12,6 @@ export interface IWebSocketService {
     keepActive?: boolean
   ): boolean;
   clearSubscriptions(): void;
-}
-
-export interface IWebSocketMessage<T extends object> {
-  messageObject: T;
 }
 
 export class WebSocketSuscriber<T> {
@@ -46,6 +41,7 @@ export class WebSocketService implements IWebSocketService, OnDestroy {
     this.initWebsocketClient();
   }
 
+  // Listen to this to catch the events which were broadcasted through $rootScope.
   public get socketConnectionEvents$(): Observable<SocketEvent> {
     return this._socketConnectionEvents$.asObservable().pipe(shareReplay(1));
   }
@@ -55,11 +51,13 @@ export class WebSocketService implements IWebSocketService, OnDestroy {
     handler: (message: { body: string }) => T,
     keepActive?: boolean
   ): boolean {
-    if (!this.wsSubject$ || this.wsSubject$.closed) {
-      this.subscribers.push(new WebSocketSuscriber(url, handler, keepActive || false));
+    if (!this.wsSubject$) {
+      this.subscribers.push(new WebSocketSuscriber<T>(url, handler, keepActive || false));
+    } else if (this.wsSubject$ && !this.wsSubject$.closed) {
+      this.runSubscriber<T>({ url, handler, keepActive: keepActive || false });
+    } else {
       return false;
     }
-    this.runSubscriber({ url, handler, keepActive: keepActive || false });
     return true;
   }
 
@@ -79,7 +77,7 @@ export class WebSocketService implements IWebSocketService, OnDestroy {
 
       const wsConfig: WebSocketSubjectConfig<{ body: string }> = {
         url: socketEndpoint,
-        protocol: 'stomp',
+        protocol: 'v12.stomp',
         /**
          * To respect the original implementation and not
          * violate the message parameter type of the handler function
@@ -100,7 +98,7 @@ export class WebSocketService implements IWebSocketService, OnDestroy {
           next: (closeEvent) => {
             this.logger.info('Socket closed');
             this._socketConnectionEvents$.next(SocketEvent.CLOSED);
-            // Error handling
+            // Retry handling on error
             if (!closeEvent.wasClean) {
               this.wsSubject$ = null;
               setTimeout(() => this.initWebsocketClient(), 10000);
@@ -110,11 +108,18 @@ export class WebSocketService implements IWebSocketService, OnDestroy {
       };
 
       this.wsSubject$ = webSocket(wsConfig);
-      this.wsSubject$.subscribe();
+      this.wsSubject$
+        .pipe(
+          catchError((e) => {
+            this.logger.error('Socket error : ', e);
+            return EMPTY;
+          })
+        )
+        .subscribe();
     }
   }
 
-  private runSubscriber(subscriber: WebSocketSuscriber<unknown>): void {
+  private runSubscriber<T>(subscriber: WebSocketSuscriber<T>): void {
     this.logger.info('New SUBSCRIPTION : ', subscriber.url);
     const subscription = this.wsSubject$
       ?.multiplex(
@@ -130,9 +135,15 @@ export class WebSocketService implements IWebSocketService, OnDestroy {
         }),
         (message: { body: string }) => {
           const body = JSON.parse(message.body);
-          // body[2] always contain the selected topic in the response payload
+          // body[2] always contain the selected topic in the response payload.
           return Array.isArray(body) && body[2] === subscriber.url;
         }
+      )
+      .pipe(
+        catchError((e) => {
+          this.logger.error('Socket error : ', e);
+          return EMPTY;
+        })
       )
       .subscribe(subscriber.handler);
 
