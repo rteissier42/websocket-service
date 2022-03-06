@@ -6,13 +6,13 @@ export enum CurrencyChannel {
   TICKER = 'ticker',
   TRADE = 'trade',
 }
-export interface ICurrencyInfos {
+export interface IPricesInfos {
   last24Hours: string;
   today: string;
 }
 export interface ITickerValue {
-  lowest: ICurrencyInfos;
-  highest: ICurrencyInfos;
+  lowest: IPricesInfos;
+  highest: IPricesInfos;
 }
 
 export interface ITradingInfos {
