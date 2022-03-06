@@ -74,6 +74,9 @@ export class WebSocketService implements IWebSocketService, OnDestroy {
 
   private initWebsocketClient(): void {
     if (!this.wsSubject$ || this.wsSubject$.closed) {
+      // Flag(appConf): Alternatively if we absolutely have to expose appConf as a constant.
+      // const socketEndpoint = this.appConf.webSocketEndpointUrl
+
       const socketEndpoint = this.appConf.getUrl(ConfigUrl.SOCKET_ENDPOINT);
       this.logger.info('Init Web Socket : ', socketEndpoint);
 
