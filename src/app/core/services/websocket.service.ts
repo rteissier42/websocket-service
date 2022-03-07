@@ -36,8 +36,45 @@ export class WebSocketService implements IWebSocketService, OnDestroy {
   private wsSubject$: WebSocketSubject<{ body: string }> | null = null;
   private _socketConnectionEvents$: Subject<SocketEvent>;
 
-  constructor(private appConf: AppConfigService, private logger: LoggerService) {
+  private socketEndpoint: string;
+  private wsConfig: WebSocketSubjectConfig<{ body: string }>;
+
+  constructor(appConf: AppConfigService, private logger: LoggerService) {
     this._socketConnectionEvents$ = new Subject<SocketEvent>();
+    // Flag(appConf): Alternatively if we absolutely have to expose appConf as a constant.
+    // this.socketEndpoint = appConf.webSocketEndpointUrl
+    this.socketEndpoint = appConf.getUrl(ConfigUrl.SOCKET_ENDPOINT);
+    this.wsConfig = {
+      url: this.socketEndpoint,
+      protocol: ['v12.stomp', 'v11.stomp', 'v10.stomp'],
+      /**
+       * To respect the original implementation and not
+       * violate the message parameter type of the handler function
+       * in our subscribe method, we prevent Rxjs to JSON.Parse
+       * our return payloads.
+       */
+      deserializer: ({ data }) => ({
+        body: data,
+      }),
+      openObserver: {
+        next: () => {
+          this.logger.info('Socket connected : run subscribers');
+          this._socketConnectionEvents$.next(SocketEvent.OPEN);
+          this.subscribers.forEach((subscriber) => this.runSubscriber(subscriber));
+        },
+      },
+      closeObserver: {
+        next: (closeEvent) => {
+          this.logger.info('Socket closed');
+          this._socketConnectionEvents$.next(SocketEvent.CLOSED);
+          // Retry handling on error
+          if (!closeEvent.wasClean) {
+            this.wsSubject$ = null;
+            setTimeout(() => this.initWebsocketClient(), 10000);
+          }
+        },
+      },
+    };
     this.initWebsocketClient();
   }
 
@@ -80,45 +117,9 @@ export class WebSocketService implements IWebSocketService, OnDestroy {
 
   private initWebsocketClient(): void {
     if (!this.wsSubject$ || this.wsSubject$.closed) {
-      // Flag(appConf): Alternatively if we absolutely have to expose appConf as a constant.
-      // const socketEndpoint = this.appConf.webSocketEndpointUrl
+      this.logger.info('Init Web Socket : ', this.socketEndpoint);
 
-      const socketEndpoint = this.appConf.getUrl(ConfigUrl.SOCKET_ENDPOINT);
-      this.logger.info('Init Web Socket : ', socketEndpoint);
-
-      const wsConfig: WebSocketSubjectConfig<{ body: string }> = {
-        url: socketEndpoint,
-        protocol: 'v12.stomp',
-        /**
-         * To respect the original implementation and not
-         * violate the message parameter type of the handler function
-         * in our subscribe method, we prevent Rxjs to JSON.Parse
-         * our return payloads.
-         */
-        deserializer: ({ data }) => ({
-          body: data,
-        }),
-        openObserver: {
-          next: () => {
-            this.logger.info('Socket connected : run subscribers');
-            this._socketConnectionEvents$.next(SocketEvent.OPEN);
-            this.subscribers.forEach((subscriber) => this.runSubscriber(subscriber));
-          },
-        },
-        closeObserver: {
-          next: (closeEvent) => {
-            this.logger.info('Socket closed');
-            this._socketConnectionEvents$.next(SocketEvent.CLOSED);
-            // Retry handling on error
-            if (!closeEvent.wasClean) {
-              this.wsSubject$ = null;
-              setTimeout(() => this.initWebsocketClient(), 10000);
-            }
-          },
-        },
-      };
-
-      this.wsSubject$ = webSocket(wsConfig);
+      this.wsSubject$ = webSocket(this.wsConfig);
       this.wsSubject$
         .pipe(
           catchError((e) => {
